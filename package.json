@@ -1,21 +1,58 @@
 {
   "name": "mongo-rest-boiletplate",
   "version": "1.0.0",
-  "description": "",
+  "description": "Boilerplate code for creating Rest APIs with Express and MongoDB.\nWith Authorisation included",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc",
+    "start:dev": "nodemon",
+    "start:prod": "SET NODE_ENV=production&&npx nodemon",
+    "debug": "ndb dist/server.js",
     "prepare": "husky"
   },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
   "keywords": [],
-  "author": "",
+  "author": "Faye Okude",
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.2.0",
-    "eslint": "^9.2.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/express": "^4.17.21",
+    "@types/hpp": "^0.2.6",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/morgan": "^1.9.9",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.12.10",
+    "@types/validator": "^13.11.9",
+    "@types/xss-filters": "^0.0.30",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
     "globals": "^15.1.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
-    "prettier": "3.2.5"
+    "prettier": "3.2.5",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.8.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.4",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
+    "sharp": "^0.33.3",
+    "validator": "^13.11.0",
+    "xss-clean": "^0.1.4"
   }
 }
