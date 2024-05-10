@@ -35,12 +35,13 @@ Follow these steps to clone and run the project on your local machine:
 
 You should be able to send requests the application at http://localhost:3000 if you left the port as it stands.
 
-User avatars will be stored locally @public/
+User avatars will be stored locally @public/img/users
 I recommend you reconfigure this and use a storage bucket for your applications.
 
 ## How to test
 
-Download the POSTMAN Collection and experiment with the requests.
+- Download the POSTMAN Collection and experiment with the requests.
+- You will need to populate the Environment variables.
 
 [<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/28686808-3c87380a-3c09-4028-a850-6c4279471768?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D28686808-3c87380a-3c09-4028-a850-6c4279471768%26entityType%3Dcollection%26workspaceId%3Dbb762fa1-92b3-4428-81d0-0351acacea3c)
 
