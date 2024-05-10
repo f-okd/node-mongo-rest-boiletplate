@@ -24,6 +24,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.12.10",
+    "@types/nodemailer": "^6.4.15",
     "@types/validator": "^13.11.9",
     "@types/xss-filters": "^0.0.30",
     "eslint": "^8.57.0",

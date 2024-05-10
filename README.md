@@ -2,11 +2,64 @@
 
 ## How to Run
 
-Only data we pass in jwt payload is the user id (jwt.sign({id}))
-JWT_SECRET: - Using hs256 encryption for the signature, secret should be at least 32characters long. The longer the better
-JWT_EXPIRES_IN - Duration for which jwt token should be considered valid,even if the signature is correct. e.g. logging out the user after a certain period of time - Additional security measure
+# Koods' Archive (Book Tracking Application)
+
+This is a book tracking application built using React, Supabase and the Google Books API. Individuals can track books they want to read, are reading, have read or decided not to finish, fetched using the Google Books API. They can also add reviews and ratings for these books.
+
+Users can also login, signup and change passwords. Vitest was used for React unit testing.
+
+## How to Run
+
+Follow these steps to clone and run the project on your local machine:
+
+1. Clone the repository to your local machine:
+
+   ```bash
+   git clone https://github.com/f-okd/book-tracker
+   ```
+
+2. Navigate to the project directory:
+
+   ```bash
+   cd C:\...\book-tracker
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+4. Rename the env.example file and populate the variables:
+
+   - You will need to create a mongodb account and a new database so that you can use that connection string
+   - You will need a 32 character long JWT secret
+   - You will need a mailtrap account for testing emails in development environment
+
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+You should be able to send requests the application at [http://localhost:<PORT>](http://localhost:3000) if you left the port as it stands.
 
 ## How to test
+
+Download the POSTMAN Collection and experiment with the requests.
+
+I recommend creating an admin account:
+```
+POST {{URL}}/api/v1/users/signup
+        body {
+            "name":"Test admin",
+            "email":"test@example.com",
+            "role":"admin",
+            "password":"test1234",
+            "passwordConfirm":"test1234"
+        }
+```
+
+I recommend after you create a master admin account, add a middleware to not allow non-admin/authenticated users to create new admin accounts. It's currently open so you can make the first admin account.
 
 ## Security
 
@@ -187,16 +240,17 @@ export const restrictTo = (...roles: Role[]) => {
 
 ### Resetting Passwords
 
-- User sends post request to /forgotPassword route with email in the body, handler creates reset token and sends to the email address provided. (Regular token, not a JWT so we feel comfortable sending in plaintext as the email should be a secure place)
-- User sends the token sent to his email with their new password in order to update their password, feel free to implement this
+- User sends post request to `/forgotPassword` route with their email in the request body.
+- The server creates reset token and stores in the db on user document.
+- The token is also to the email address provided. (Regular token, not a JWT so we feel comfortable sending in plaintext as the email should be a secure place)
+- Token is like a temporary password (will expire in 10minutes) so we encrypt it, althought it doesn't need to be as cryptographically strong as the password encryption as because it's a weaker attack vector.
 
 **/forgotPassword**
 
 ```
 // src\models\userModel.ts
 userSchema.methods.createPasswordResetToken = function () {
-  //don't store in db as plaintext as if a bad actor gains db access they can use it to reset the user's password
-  // Doesn't need to be as cryptographically strong as the password encryption
+  // cant store in db as plaintext as if a bad actor gains db access they can use it to reset the user's password
   const resetToken = crypto.randomBytes(32).toString('hex');
 
   // use sha256 algo to encrypt resetToken and store as hex again
@@ -212,6 +266,9 @@ userSchema.methods.createPasswordResetToken = function () {
   return resetToken;
 };
 ```
+
+- We use sendgrid as our production service, and mailtrap as our development service.
+- Mailtrap intercepts outgoing emails for testing.
 
 ```
 //src\controllers\authController.ts
@@ -248,6 +305,7 @@ export const forgotPassword = AsyncErrorHandler(
       // If unsuccessful, reset token
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
+      //haven't specified all the mandatory/required fields specified in schema, so we need to not validate to prevent errors e.g. password
       await user.save({ validateBeforeSave: false });
 
       return next(
@@ -262,9 +320,42 @@ export const forgotPassword = AsyncErrorHandler(
 ```
 
 **Resetting password**
+- To change the password the client must send a PATCH request to {{URL}}/api/v1/users/resetPassword/:token' with a new password and password confirmation in the body:
+    {
+        "email":"test@example.com",
+        "password":
+    }
+- Because the forgotPassword route has appended a resetToken to the user document, we can rehash the plaintext token sent in the request params and look for the user document that has a matching hashed token.
+- If the token is not expired we change the user's password and reset their resetToken properties
 
 ```
+export const resetPassword = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // 1. Get user based on token
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+    // 2. If token has not expired, and user exists, set the new password
 
+    if (!user) {
+      return next(new AppError('Token is invalid or has expired', 400));
+    }
+
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    user.passwordResetToken = '';
+    user.passwordResetExpires = new Date(0);
+    await user.save();
+    // 3. Update changedPasswordAt propery for the user
+    // 4. Log the user in, send JWT
+    createAndSendToken(user, 200, res);
+  },
+);
 ```
 
 **Updating password**

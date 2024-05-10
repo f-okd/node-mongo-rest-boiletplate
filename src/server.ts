@@ -6,8 +6,9 @@ import app from './index';
 //Load env variables from .env file https://www.npmjs.com/package/dotenv#-install
 const PORT = process.env.PORT || 3000;
 const DB_URL = process.env.DB_URL as string;
-const DB_PASSWORD = process.env.DB_PASSWORD as string;
-const DB = DB_URL.replace('<PASSWORD>', DB_PASSWORD);
+const DB_USER = process.env.DB_ADMIN_USERNAME as string;
+const DB_PASSWORD = process.env.DB_ADMIN_PASSWORD as string;
+const DB = DB_URL.replace('<PASSWORD>', DB_PASSWORD).replace('<USERNAME>', DB_USER);
 
 mongoose
   .connect(DB)

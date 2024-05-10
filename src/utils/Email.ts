@@ -1,5 +1,9 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
+interface MailtrapTransporter {
+  host: string;
+}
 const sendEmail = async (options: {
   email: string;
   subject: string;
@@ -13,11 +17,11 @@ const sendEmail = async (options: {
       user: process.env.EMAIL_USERNAME,
       pass: process.env.EMAIL_PASSWORD,
     },
-  });
+  } as SMTPTransport.Options);
 
   // 2) Define the email options
   const mailOptions = {
-    from: 'Lorem Ipsum <admin@app.com>',
+    from: process.env.EMAIL_FROM,
     to: options.email,
     subject: options.subject,
     text: options.message,

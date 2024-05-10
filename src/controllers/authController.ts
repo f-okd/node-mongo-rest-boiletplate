@@ -8,6 +8,7 @@ import jwt, { JwtPayload, Secret, SigningKeyCallback } from 'jsonwebtoken';
 import AsyncErrorHandler from '../utils/AsyncErrorHandler';
 import User from '../models/userModel';
 import AppError from '../utils/AppError';
+import sendEmail from '../utils/Email';
 
 export interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -155,13 +156,13 @@ export const forgotPassword = AsyncErrorHandler(
       'host',
     )}/api/v1/users/resetPassword/${resetToken}`;
 
-    const message = `Forgot your password? Send patch req with new password and password confirmation to ${resetURL}`;
+    const message = `Forgot your password? Send patch request with new password and password confirmation to ${resetURL}`;
     try {
-      // await sendEmail({
-      //   email: user.email,
-      //   subject: 'Your password reset token (valid for 10min)',
-      //   message,
-      // });
+      await sendEmail({
+        email: user.email,
+        subject: 'Your password reset token (valid for 10min)',
+        message,
+      });
 
       //We send the token in plaintext because we assume the email to be a safe secure place that only the user has access to
       res.status(200).json({
@@ -203,8 +204,8 @@ export const resetPassword = AsyncErrorHandler(
 
     user.password = req.body.password;
     user.passwordConfirm = req.body.passwordConfirm;
-    user.passwordResetToken = '';
-    user.passwordResetExpires = new Date(0);
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
     await user.save();
     // 3) Update changedPasswordAt propery for the user
     // 4) Log the user in, send JWT
