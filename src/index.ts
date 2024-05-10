@@ -9,7 +9,7 @@ import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 
 import AppError from './utils/AppError';
-// const globalErrorHandler = require('./controllers/errorController');
+import globalErrorHandler from './controllers/errorController';
 import userRouter from './routes/userRoutes';
 
 const app = express();
@@ -69,6 +69,6 @@ app.all('*', (req, _res, next) => {
 });
 
 //Error handling middleware
-// app.use(globalErrorHandler);
+app.use(globalErrorHandler);
 
 export default app;

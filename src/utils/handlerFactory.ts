@@ -70,7 +70,7 @@ export const getOne = (Model: Model<any>, populateOpts?: string[]) =>
   });
 
 export const getAll = (Model: Model<any>) =>
-  AsyncErrorHandler(async (req: Request, res: Response, next: NextFunction) => {
+  AsyncErrorHandler(async (_req: Request, res: Response, _next: NextFunction) => {
     const docs = await Model.find();
 
     res.status(200).json({

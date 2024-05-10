@@ -13,11 +13,6 @@ const getUserIdFromProtectedRequest = (req: Request): string => {
   return String(authenticatedRequest.user._id);
 };
 
-const getUserFromProtectedRequest = (req: Request): IUser => {
-  const authenticatedRequest = req as AuthenticatedRequest;
-  return authenticatedRequest.user;
-};
-
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
 //     cb(null, 'public/img/users');

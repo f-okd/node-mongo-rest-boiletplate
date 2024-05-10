@@ -102,7 +102,6 @@ userSchema.query.activeAccounts = function (
   return this.find({ active: { $ne: false } });
 };
 
-//Instanc method is available on all documents of a given collection
 userSchema.methods.correctPassword = async function (
   // this.password not availble because we disabled select
   candidatePassword: string,
@@ -126,10 +125,8 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
 };
 
 userSchema.methods.createPasswordResetToken = function () {
-  //don't store in db as plaintext as if a bad actor gains db access they can use it to reset the user's password
   const resetToken = crypto.randomBytes(32).toString('hex');
 
-  // use sha256 algo to encrypt resetToken and store as hex again
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)

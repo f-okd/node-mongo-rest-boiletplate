@@ -32,14 +32,12 @@ const createAndSendToken = (user: IUser, statusCode: number, res: Response) => {
       Date.now() +
         Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
-    secure: process.env.NODE_ENV === 'production' ? true : false, //cookie will only be sent on an encrypted connect
-    httpOnly: true, //cookie cant be accessed/manipulated by browser (xss attacks)
+    secure: process.env.NODE_ENV === 'production' ? true : false,
+    httpOnly: true,
   };
 
-  // expire property ensures that the client will delete the cookie after it has expired
   res.cookie('jwt', token, cookieOptions);
 
-  //remove password from the output
   user.password = '';
 
   res.status(statusCode).json({
@@ -63,7 +61,6 @@ export const signup = AsyncErrorHandler(
       passwordChangedAt: req.body.passwordChangedAt,
     });
 
-    // Expiration time will logut user after x minutes even if it would otherwise verify
     createAndSendToken(newUser, 201, res);
   },
 );
@@ -72,24 +69,21 @@ export const login = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
-    // 1) Check if email and password exist
     if (!email || !password) {
       return next(new AppError('Please provide email and password!', 400));
     }
-    // 2) Check if user exists && password is correct
+
     const user = await User.findOne({ email }).select('+password');
-    // console.log(user);
 
     if (!user || !(await user.correctPassword(password, user.password))) {
       return next(new AppError('Incorrect email or password', 401));
     }
 
-    // 3) If everything okay send token to client
     createAndSendToken(user, 200, res);
   },
 );
 
-export const logout = (req: Request, res: Response, _next: NextFunction) => {
+export const logout = (_req: Request, res: Response, _next: NextFunction) => {
   res.cookie('jwt', 'Logged Out', {
     expires: new Date(Date.now()),
     httpOnly: true,
@@ -100,7 +94,6 @@ export const logout = (req: Request, res: Response, _next: NextFunction) => {
 
 export const protect = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // 1) Check if token exists and retrieve it
     let token;
     if (
       req.headers.authorization &&
@@ -111,26 +104,18 @@ export const protect = AsyncErrorHandler(
       token = req.cookies.jwt;
     }
     if (!token) {
-      // 401: Unauthorised
       return next(new AppError('You are not logged in', 401));
     }
 
-    // 2) Verify JWT token
-    // Callback runs after the verifying
     const decoded = jwt.verify(token, process.env.JWT_SECRET as Secret);
-    // console.log(decoded);
 
-    // 3) Check if user still exists
     const currentUser = await User.findById((decoded as IDecodedPayload).id);
-    // console.log(currentUser);
     if (!currentUser) {
       return next(
         new AppError('The user this token belongs to no longer exists', 401),
       );
     }
 
-    // 4) Check if user changed password after the JWT was issued
-    //JWT stores date of issue
     if (currentUser.changedPasswordAfter((decoded as IDecodedPayload).iat)) {
       return next(
         new AppError(
@@ -140,50 +125,13 @@ export const protect = AsyncErrorHandler(
       );
     }
 
-    //GRANT ACCESS TO PROTECTED ROUTE
-    res.locals.user = currentUser;
     (req as AuthenticatedRequest).user = currentUser;
     next();
   },
 );
 
-// Only for rendered pages, no errors!
-export const isLoggedIn = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  if (req.cookies.jwt) {
-    try {
-      // 1) verify token
-      const decoded = jwt.verify(
-        req.cookies.jwt,
-        process.env.JWT_SECRET as Secret,
-      );
-
-      // 2) Check if user still exists
-      const currentUser = await User.findById((decoded as IDecodedPayload).id);
-      if (!currentUser) {
-        return next();
-      }
-
-      // 3) Check if user changed password after the token was issued
-      if (currentUser.changedPasswordAfter((decoded as IDecodedPayload).iat)) {
-        return next();
-      }
-
-      // THERE IS A LOGGED IN USER
-      res.locals.user = currentUser;
-      return next();
-    } catch (err) {
-      return next();
-    }
-  }
-  next();
-};
-
 export const restrictTo = (...roles: Role[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!roles.includes((req as AuthenticatedRequest).user.role)) {
       return next(
         new AppError('You do not have permission to perform this action', 403),
@@ -195,13 +143,11 @@ export const restrictTo = (...roles: Role[]) => {
 
 export const forgotPassword = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // 1. Get user based on POSTed email
     const user = await User.findOne({ email: req.body.email });
     if (!user)
       return next(
         new AppError('There is no user with that email address.', 404),
       );
-    // 2. Generate random token
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
     // 3. Send to user's email
@@ -268,27 +214,22 @@ export const resetPassword = AsyncErrorHandler(
 
 const updatePassword = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // 1) Get user from collection
     const user = await User.findById(
       (req as AuthenticatedRequest).user._id,
     ).select('+password');
 
     if (!user) return next(new AppError('User not found', 404));
 
-    // 2) Check if POSTed current password is correct
     if (
       !(await user.correctPassword(req.body.passwordCurrent, user.password))
     ) {
       return next(new AppError('Your current password is wrong.', 401));
     }
 
-    // 3) If so, update password
     user.password = req.body.password;
     user.passwordConfirm = req.body.passwordConfirm;
     await user.save();
-    // User.findByIdAndUpdate will NOT work as intended!
 
-    // 4) Log user in, send JWT
     createAndSendToken(user, 200, res);
   },
 );
@@ -298,7 +239,6 @@ export default {
   login,
   logout,
   protect,
-  isLoggedIn,
   restrictTo,
   forgotPassword,
   resetPassword,

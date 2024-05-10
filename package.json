@@ -11,9 +11,6 @@
     "debug": "ndb dist/server.js",
     "prepare": "husky"
   },
-  "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
-  },
   "keywords": [],
   "author": "Faye Okude",
   "license": "ISC",
