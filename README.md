@@ -43,6 +43,9 @@ Follow these steps to clone and run the project on your local machine:
 
 You should be able to send requests the application at http://localhost:3000 if you left the port as it stands.
 
+User avatars will be stored locally @public/
+I recommend you reconfigure this and use a storage bucket for your applications.
+
 ## How to test
 
 Download the POSTMAN Collection and experiment with the requests.
@@ -65,6 +68,17 @@ POST {{URL}}/api/v1/users/signup
 I recommend after you create a master admin account, add a middleware to not allow non-admin/authenticated users to create new admin accounts. It's currently open so you can make the first admin account.
 
 ## Security
+
+### Best practices implemented:
+
+- Passwords are strongly encrypted wiht salt and hash (bcrpyt.js)
+- Password reset tokens are also strongly encrypted (SHA 256)
+- Rate limiter (express-rate-limit) used to protect vs brute force attacks e.g. DDOS
+- Prevent XSS attacks by only sending jwts in HTTOnly cookies, meaning the browser can only receive and send cookies but can't acceess or modify them
+- Use helmet package to set special HTTP headers to protect vs xss attacks
+- Because we're using mongoose which comes with SchemaTypes its harder to fall prey to NSQL Query injection
+- User inputs are well sanitized
+- Can use hpp package to prevent parameter pollution (so we whitelist a fixed set of acceptable query params)
 
 ### How Json Web Tokens (JWTs) work:
 

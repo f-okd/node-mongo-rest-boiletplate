@@ -46,7 +46,7 @@ const upload = multer({
 
 //'single' field in form that will contain image to upload, singlE:1 file.
 // Will copy file and put in destination and put information about it on the request
-const uploadUserPhoto = upload.single('photo');
+const uploadUserPhoto = upload.single('avatar');
 const resizeUserPhoto = AsyncErrorHandler(async (req, res, next) => {
   if (!req.file) return next();
 

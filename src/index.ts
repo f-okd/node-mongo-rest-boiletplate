@@ -1,6 +1,6 @@
 import path from 'path';
 import express from 'express';
-// import morgan from 'morgan';
+import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import ExpressMongoSanitize from 'express-mongo-sanitize';
@@ -20,9 +20,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Set security HTTP headers
 app.use(helmet());
 // Development logging
-// if (process.env.NODE_ENV === 'development') {
-//   app.use(morgan('dev'));
-// }
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 //Limit requests from the same API (100/hr)
 const limiter = rateLimit({
   max: 100,
@@ -43,13 +43,7 @@ app.use(xss());
 //Prevent parameter pollution
 app.use(
   hpp({
-    whitelist: [
-      'duration',
-      'numberOfRatings',
-      'avgRating',
-      'difficulty',
-      'price',
-    ], //allow multiple query params for duration (will select all matching), but not something like sort e.g.
+    whitelist: ['example', 'example2'], //allow multiple query params for duration (will select all matching), but not something like sort e.g.
   }),
 );
 
