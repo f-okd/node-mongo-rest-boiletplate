@@ -2,14 +2,6 @@
 
 ## How to Run
 
-# Koods' Archive (Book Tracking Application)
-
-This is a book tracking application built using React, Supabase and the Google Books API. Individuals can track books they want to read, are reading, have read or decided not to finish, fetched using the Google Books API. They can also add reviews and ratings for these books.
-
-Users can also login, signup and change passwords. Vitest was used for React unit testing.
-
-## How to Run
-
 Follow these steps to clone and run the project on your local machine:
 
 1. Clone the repository to your local machine:
