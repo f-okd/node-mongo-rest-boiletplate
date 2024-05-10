@@ -88,6 +88,7 @@ const updateMe = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
+// User can't delete their own account. It's just set to inactive. Security practice
 const deleteMe = AsyncErrorHandler(async (req, res, next) => {
   const id = getUserIdFromProtectedRequest(req);
 

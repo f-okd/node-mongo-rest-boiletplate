@@ -41,13 +41,16 @@ Follow these steps to clone and run the project on your local machine:
    npm run dev
    ```
 
-You should be able to send requests the application at [http://localhost:<PORT>](http://localhost:3000) if you left the port as it stands.
+You should be able to send requests the application at http://localhost:3000 if you left the port as it stands.
 
 ## How to test
 
 Download the POSTMAN Collection and experiment with the requests.
 
+[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/28686808-3c87380a-3c09-4028-a850-6c4279471768?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D28686808-3c87380a-3c09-4028-a850-6c4279471768%26entityType%3Dcollection%26workspaceId%3Dbb762fa1-92b3-4428-81d0-0351acacea3c)
+
 I recommend creating an admin account:
+
 ```
 POST {{URL}}/api/v1/users/signup
         body {
@@ -238,7 +241,7 @@ export const restrictTo = (...roles: Role[]) => {
 };
 ```
 
-### Resetting Passwords
+#### Resetting Passwords
 
 - User sends post request to `/forgotPassword` route with their email in the request body.
 - The server creates reset token and stores in the db on user document.
@@ -320,11 +323,12 @@ export const forgotPassword = AsyncErrorHandler(
 ```
 
 **Resetting password**
+
 - To change the password the client must send a PATCH request to {{URL}}/api/v1/users/resetPassword/:token' with a new password and password confirmation in the body:
-    {
-        "email":"test@example.com",
-        "password":
-    }
+  {
+  "email":"test@example.com",
+  "password":
+  }
 - Because the forgotPassword route has appended a resetToken to the user document, we can rehash the plaintext token sent in the request params and look for the user document that has a matching hashed token.
 - If the token is not expired we change the user's password and reset their resetToken properties
 
@@ -387,6 +391,37 @@ const updatePassword = AsyncErrorHandler(
     // User.findByIdAndUpdate will NOT work as intended!
 
     // 4. Log user in, send JWT
+    createAndSendToken(user, 200, res);
+  },
+);
+```
+
+**Update password**
+
+- This route is for authenticated users (already logged in) to change their password
+- They pass a password and a confirmation to the request body and once they're validated, the user password is updated and they're sent a new jwt
+
+```
+const updatePassword = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await User.findById(
+      (req as AuthenticatedRequest).user._id,
+    ).select('+password');
+
+    if (!user) return next(new AppError('User not found', 404));
+
+    if (
+      !(await user.correctPassword(req.body.passwordCurrent, user.password))
+    ) {
+      return next(new AppError('Your current password is wrong.', 401));
+    }
+
+
+    // dont use findByIdAndUpdate otherwise the validators and defined pre-save middleware won't run
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    await user.save();
+
     createAndSendToken(user, 200, res);
   },
 );

@@ -151,7 +151,7 @@ export const forgotPassword = AsyncErrorHandler(
       );
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
-    // 3. Send to user's email
+
     const resetURL = `${req.protocol}://${req.get(
       'host',
     )}/api/v1/users/resetPassword/${resetToken}`;
@@ -164,13 +164,11 @@ export const forgotPassword = AsyncErrorHandler(
         message,
       });
 
-      //We send the token in plaintext because we assume the email to be a safe secure place that only the user has access to
       res.status(200).json({
         status: 'success',
         message: 'token sent',
       });
     } catch (error) {
-      // If unsuccessful, reset token
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });
@@ -187,7 +185,6 @@ export const forgotPassword = AsyncErrorHandler(
 
 export const resetPassword = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // 1) Get user based on token
     const hashedToken = crypto
       .createHash('sha256')
       .update(req.params.token)
@@ -196,7 +193,6 @@ export const resetPassword = AsyncErrorHandler(
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     });
-    // 2) If token has not expired, and user exists, set the new password
 
     if (!user) {
       return next(new AppError('Token is invalid or has expired', 400));
@@ -207,8 +203,7 @@ export const resetPassword = AsyncErrorHandler(
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
-    // 3) Update changedPasswordAt propery for the user
-    // 4) Log the user in, send JWT
+
     createAndSendToken(user, 200, res);
   },
 );
