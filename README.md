@@ -1,16 +1,16 @@
-h1 NodeJS + MongoDB REST API Boilerplate
+# NodeJS + MongoDB REST API Boilerplate
 
-h2 How to Run
+## How to Run
 
 Only data we pass in jwt payload is the user id (jwt.sign({id}))
 JWT_SECRET: - Using hs256 encryption for the signature, secret should be at least 32characters long. The longer the better
 JWT_EXPIRES_IN - Duration for which jwt token should be considered valid,even if the signature is correct. e.g. logging out the user after a certain period of time - Additional security measure
 
-h2 How to test
+## How to test
 
-h3 Security
+## Security
 
-h4 How Json Web Tokens (JWTs) work:
+### How Json Web Tokens (JWTs) work:
 
 - Stateless solution to authentication, so we don't need to store any session state on the server
 - User client makes POST req to /login end point. If the user exists and the password is correct, a unique JWT is created using a secret.
@@ -30,7 +30,7 @@ interface IDecodedPayload extends JwtPayload {
 }
 ```
 
-h4 Authentication + Authorization:
+### Authentication + Authorization:
 
 **Logging in**:
 
@@ -106,14 +106,19 @@ export const logout = (req: Request, res: Response, _next: NextFunction) => {
 
 **Protecting routes**:
 
-We create a 'protect' middleware to verify jwts before returning requested data:
+- We create a 'protect' middleware to verify jwts before returning requested data.
+- After verifying everything's okay, user property will be available on request object so the following handlers can use it for db look ups. e.g. `find({id:req.user.id})`
+
+- src/routes/userRoutes:
 
 ```
-// src/routes/userRoutes:
 router.use(authController.protect);
 router.patch('/updateMyPassword/', authController.updatePassword);
+```
 
-// src/controllers/authController:
+- src/controllers/authController:
+
+```
 export const protect = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     // 1. Check if token exists and retrieve it
@@ -164,6 +169,9 @@ export const protect = AsyncErrorHandler(
 
 **Role based authentication/Restricting routes to specific user roles**
 
+- User property will be available on request object as it should be used after the protect middleware
+  If a user is logged in (gets past protect middleware), but doesn't have the desired role...they'll not be allowed to access the following handler (re:middleware stack).
+
 ```
 export const restrictTo = (...roles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -177,7 +185,7 @@ export const restrictTo = (...roles: Role[]) => {
 };
 ```
 
-h4 Resetting Passwords
+### Resetting Passwords
 
 - User sends post request to /forgotPassword route with email in the body, handler creates reset token and sends to the email address provided. (Regular token, not a JWT so we feel comfortable sending in plaintext as the email should be a secure place)
 - User sends the token sent to his email with their new password in order to update their password, feel free to implement this
@@ -185,8 +193,10 @@ h4 Resetting Passwords
 **/forgotPassword**
 
 ```
+// src\models\userModel.ts
 userSchema.methods.createPasswordResetToken = function () {
   //don't store in db as plaintext as if a bad actor gains db access they can use it to reset the user's password
+  // Doesn't need to be as cryptographically strong as the password encryption
   const resetToken = crypto.randomBytes(32).toString('hex');
 
   // use sha256 algo to encrypt resetToken and store as hex again
@@ -201,7 +211,10 @@ userSchema.methods.createPasswordResetToken = function () {
 
   return resetToken;
 };
+```
 
+```
+//src\controllers\authController.ts
 export const forgotPassword = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     // 1. Get user based on POSTed email
@@ -256,7 +269,7 @@ export const forgotPassword = AsyncErrorHandler(
 
 **Updating password**
 
-- Protected route, user must be logged in to access this handler => user property will be available on request object
+- Protected route, user must be logged in to access this handler
 - user.correctPassword() is a mongoose instance method, we use to check if a submitted value is equal to that user instance's set passord
 
 ```
