@@ -13,21 +13,11 @@ const getUserIdFromProtectedRequest = (req: Request): string => {
   return String(authenticatedRequest.user._id);
 };
 
-// const multerStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'public/img/users');
-//   },
-//   filename: (req, file, cb) => {
-//     const ext = file.mimetype.split('/')[1];
-//     cb(null, `user-${req.user._id}-${Date.now()}.${ext}`);
-//   },
-// });
-
 //Image stored as buffer, which is available at req.file.buffer, dont have to write file to disk then read it again
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (
-  req: Request,
+  _req: Request,
   file: Express.Multer.File,
   cb: FileFilterCallback,
 ) => {
@@ -38,7 +28,6 @@ const multerFilter = (
   }
 };
 
-//dest: where to save images we want to upload
 const upload = multer({
   storage: multerStorage,
   fileFilter: multerFilter,
@@ -47,6 +36,7 @@ const upload = multer({
 //'single' field in form that will contain image to upload, singlE:1 file.
 // Will copy file and put in destination and put information about it on the request
 const uploadUserPhoto = upload.single('avatar');
+
 const resizeUserPhoto = AsyncErrorHandler(async (req, res, next) => {
   if (!req.file) return next();
 

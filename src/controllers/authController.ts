@@ -8,7 +8,7 @@ import jwt, { JwtPayload, Secret, SigningKeyCallback } from 'jsonwebtoken';
 import AsyncErrorHandler from '../utils/AsyncErrorHandler';
 import User from '../models/userModel';
 import AppError from '../utils/AppError';
-import sendEmail from '../utils/Email';
+import Email from '../utils/Email';
 
 export interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -152,14 +152,14 @@ export const forgotPassword = AsyncErrorHandler(
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetURL = `${req.protocol}://${req.get(
-      'host',
-    )}/api/v1/users/resetPassword/${resetToken}`;
-
-    const message = `Forgot your password? Send patch request with new password and password confirmation to ${resetURL}`;
     try {
-      await sendEmail({
-        email: user.email,
+      const resetURL = `${req.protocol}://${req.get(
+        'host',
+      )}/api/v1/users/resetPassword/${resetToken}`;
+
+      const message = `Forgot your password? Send patch request with new password and password confirmation to ${resetURL}`;
+
+      await new Email(user).sendEmail({
         subject: 'Your password reset token (valid for 10min)',
         message,
       });

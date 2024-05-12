@@ -338,6 +338,9 @@ export const forgotPassword = AsyncErrorHandler(
   }
 - Because the forgotPassword route has appended a resetToken to the user document, we can rehash the plaintext token sent in the request params and look for the user document that has a matching hashed token.
 - If the token is not expired we change the user's password and reset their resetToken properties
+- When the NODE_ENV environment variable = "development", it will use nodemailer and then all outgoing emails will be show in your nodemailer inbox, but not actually be sent to the address specified.
+- However when the NODE_ENV environment variable = "production", it will use sendgrid as the email service. (I recommend choosing another service, as sendgrid can be hard for hobbyists to get started with. However I've provided the template code to support it based on their documentation)
+- You could extend this and send html in the email body instead of plain text.
 
 ```
 export const resetPassword = AsyncErrorHandler(
@@ -433,3 +436,9 @@ const updatePassword = AsyncErrorHandler(
   },
 );
 ```
+
+### Image Uploads
+
+By default images will be sent via multer upload. Multer is a nodejs middlware that we use to handle multipart/form-data, in this app we use it to handle image uploads.
+
+In the {POST} `/users/updateMe` route, the client can send an image in the `avatar` field and it will be uploaded to the specified location. In this app it is just uploaded to the public folder, so as to not bog users down with config settings. [You can configure it to upload to a specified S3 bucket though](https://medium.com/@mbakr1/uploading-files-to-s3-in-node-js-using-multer-1f8bac1c2ddc)
