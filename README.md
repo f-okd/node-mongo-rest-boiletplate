@@ -1,5 +1,15 @@
 # NodeJS + MongoDB REST API Boilerplate
 
+## Table of Contents
+
+- [How to run](#how-to-run)
+- [How to test](#how-to-test)
+- [Security](#security)
+  - [Best practices implemented](#best-practices-implemented)
+  - [How Json Web Tokens (JWTs) work](#how-json-web-tokens-jwts-work)
+  - [Authentication + Authorization](#authentication--authorization)
+- [Image Uploads](#image-uploads)
+
 ## How to Run
 
 Follow these steps to clone and run the project on your local machine:
@@ -446,7 +456,7 @@ const updatePassword = AsyncErrorHandler(
 );
 ```
 
-### Image Uploads
+## Image Uploads
 
 By default images will be sent via multer upload. Multer is a nodejs middlware that we use to handle multipart/form-data, in this app we use it to handle image uploads.
 
