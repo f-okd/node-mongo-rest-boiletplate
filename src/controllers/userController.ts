@@ -13,7 +13,6 @@ const getUserIdFromProtectedRequest = (req: Request): string => {
   return String(authenticatedRequest.user._id);
 };
 
-//Image stored as buffer, which is available at req.file.buffer, dont have to write file to disk then read it again
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (
@@ -33,11 +32,9 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-//'single' field in form that will contain image to upload, singlE:1 file.
-// Will copy file and put in destination and put information about it on the request
 const uploadUserPhoto = upload.single('avatar');
 
-const resizeUserPhoto = AsyncErrorHandler(async (req, res, next) => {
+const resizeUserPhoto = AsyncErrorHandler(async (req, _res, next) => {
   if (!req.file) return next();
 
   req.file.filename = `user-${(req as AuthenticatedRequest).user._id}-${Date.now()}.jpeg`;

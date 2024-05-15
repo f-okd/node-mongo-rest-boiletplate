@@ -13,7 +13,7 @@ Follow these steps to clone and run the project on your local machine:
 2. Navigate to the project directory:
 
    ```bash
-   cd C:\...\book-tracker
+   cd C:\...\node-mongo-rest-boilerplate
    ```
 
 3. Install dependencies:
@@ -45,7 +45,7 @@ I recommend you reconfigure this and use a storage bucket for your applications.
 
 [<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/28686808-3c87380a-3c09-4028-a850-6c4279471768?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D28686808-3c87380a-3c09-4028-a850-6c4279471768%26entityType%3Dcollection%26workspaceId%3Dbb762fa1-92b3-4428-81d0-0351acacea3c)
 
-I recommend creating an admin account:
+I recommend creating an admin account first:
 
 ```
 POST {{URL}}/api/v1/users/signup
@@ -59,6 +59,15 @@ POST {{URL}}/api/v1/users/signup
 ```
 
 I recommend after you create a master admin account, add a middleware to not allow non-admin/authenticated users to create new admin accounts. It's currently open so you can make the first admin account.
+
+Example postman environment variables:
+| Variable | Type | Value |
+|--------------|---------|-------------|
+| url | String | http://127.0.0.1:3000 |
+| jwt | String | |
+| admin_email | String |admin@appName.com |
+| user_email | String | user1@appName.com|
+| password | String | test1234|
 
 ## Security
 
@@ -442,3 +451,32 @@ const updatePassword = AsyncErrorHandler(
 By default images will be sent via multer upload. Multer is a nodejs middlware that we use to handle multipart/form-data, in this app we use it to handle image uploads.
 
 In the {POST} `/users/updateMe` route, the client can send an image in the `avatar` field and it will be uploaded to the specified location. In this app it is just uploaded to the public folder, so as to not bog users down with config settings. [You can configure it to upload to a specified S3 bucket though](https://medium.com/@mbakr1/uploading-files-to-s3-in-node-js-using-multer-1f8bac1c2ddc)
+
+We save the file uploaded in the request as a buffer and check that it's an image before uploading to the specified destination.
+Because we used `upload.single` it will only accept one file in the `avatar` form-data field otherwise it will throw an error, it will also throw an error if a non-image is sent in that field.
+
+```
+//Image stored as buffer, which is available at req.file.buffer, dont have to write file to disk then read it again
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (
+  _req: Request,
+  file: Express.Multer.File,
+  cb: FileFilterCallback,
+) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Please only upload Images', 400));
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+//'single' field in form that will contain image to upload, singlE:1 file.
+// Will copy file and put in destination and put information about it on the request
+const uploadUserPhoto = upload.single('avatar');
+```
