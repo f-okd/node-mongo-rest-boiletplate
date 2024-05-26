@@ -17,7 +17,7 @@ Follow these steps to clone and run the project on your local machine:
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/f-okd/book-tracker
+   git clone https://github.com/f-okd/node-mongo-rest-boilerplate
    ```
 
 2. Navigate to the project directory:
@@ -45,7 +45,7 @@ Follow these steps to clone and run the project on your local machine:
 
 You should be able to send requests the application at http://localhost:3000 if you left the port as it stands.
 
-User avatars will be stored locally @public/img/users
+User avatars will be stored locally `@/public/img/user`
 I recommend you reconfigure this and use a storage bucket for your applications.
 
 ## How to test
