@@ -66,7 +66,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods, UserQueryHelpers>(
         validator: (val: string) => {
           return validator.isEmail(val);
         },
-        message: 'Tour name must only contain letters',
+        message: 'Invalid email format',
       },
     },
     avatar: { type: String, default: 'default.jpg' },
